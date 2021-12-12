@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Chatアプリ</title>
+<link rel="stylesheet" href="./CSS/reset.css">
+<link rel="stylesheet" href="./CSS/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;500&display=swap" rel="stylesheet">
+<link href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Modaal/0.4.4/css/modaal.min.css">
+</head>
+<body>
+    <header>
+        <div id="humbarger">ここになんか入れる？</div>
+    </header>
+    <!-- コンテンツ表示画面 -->
+    <div id="output">
+        <!-- 以下、メッセージの型式確認用 -->
+        <!-- <div class="msg_wrapper">
+            <div class="msg_header">
+                <img class="icon_img" src="imgs/buke.png">
+                <p>${msg.uname}</p>
+            </div>
+            <div class="msg_box">
+                <p class="msg_text">${msg.text}</P>
+            </div>
+            <div class="msg_footer">
+                <p class="date">${msg.dateNtime}</p>
+                <button class="delete btn hiden_area" id="${key}"><i class="far fa-trash-alt"></i></button>
+            </div>
+        </div> -->
+    </div>
+    <!--/ コンテンツ表示画面 -->
+
+    <div id="input_area">
+        <div class="input_name">
+            <div class="btn open_trigger"><img class="icon_img thumbnail" src="./imgs/buke.png" alt="iconサムネイル"></div>
+            <ul class="icon_list close_trigger hiden_area">
+                <li class="btn imgs" data-img="0"><img class="icon_img" src="imgs/buke.png" width="30"></li>
+                <li class="btn imgs" data-img="1"><img class="icon_img" src="./imgs/tuku.jpg" width="30"></li>
+                <li class="btn imgs" data-img="2"><img class="icon_img" src="./imgs/caram.png" width="30"></li>
+            </ul>
+            <input type="text" id="uname">
+        </div>
+        <div>
+            <textarea name="" id="text" cols="" rows="1"></textarea>
+        </div>
+    </div>
+
+    <!-- JQuery, その他ライブラリの参照 -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="./JavaScript.js"></script>
+    <!-- JQuery, その他ライブラリの参照 -->
+    <!--** 以下Firebase **-->
+    <script type="module">
+        // Import the functions you need from the SDKs you need  Firebaseとこのアプリを繋げた。
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js";
+
+        // Add SDKs for Firebase products that you want to use 使いたい便利ツールキット（SDK）を加える。
+        // 今回はRealtime DB関連のSDKライブラリを読み込む。↓ これらの文法を使ってRealtime DBにデータを格納したり、取り出したりする！！
+        import { getDatabase, ref, push, set, onChildAdded, remove, onChildRemoved }
+            from "https://cdnjs.cloudflare.com/ajax/libs/firebase/9.6.0/firebase-database.min.js";
+
+        // 参考：https://firebase.google.com/docs/web/setup#available-libraries
+        //       Your web app's Firebase configuration
+        const firebaseConfig = { // 接続先となるデータベースの住所を設定する *config="設定”のかっこつけた言い方
+        apiKey: "AIzaSyBwoLUt4GrJD0qjXMzeUs5plgVBOs7ESAc",
+        authDomain: "g-sapp.firebaseapp.com",
+        projectId: "g-sapp",
+        storageBucket: "g-sapp.appspot.com",
+        messagingSenderId: "97927370903",
+        appId: "1:97927370903:web:372105f0a5412bc87371d2"
+        };
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig); // 初期化ツールに自分のデータベースの住所情報をぶち込む
+        const db = getDatabase(app); // appの中のデータベースを使いたい
+        const dbRef = ref(db, "chat"); // "db"の中の"chat"という領域を参照する
+
+        // アイコン処理の準備
+        const img = ["buke.png", "tuku.jpg", "caram.png"]; // アイコン画像ファイルを配列に格納
+        let d = 0;
+        $(".imgs").on("click", function(){
+            d = $(this).attr("data-img"); // クリックされた画像のdata-img番号を取得 => 配列の順番と一致するよう仕組んでいる
+        });
+
+        // 送信処理（キーボード操作イベント）
+        $("#text").on("keydown", function(e){ // #text(textarea)上にキーボード操作イベントを設定
+            if(event.ctrlKey){
+                if(e.keyCode == 13){ // keydown変数eの中のkeycodeを取得して判断
+                const uname = $("#uname").val();  // id="uname"へ入力された中身データを変数定義
+                const text = $("#text").val();  // id="text"へ入力された中身データを変数定義
+                    const now = new Date();
+                    const year = now.getFullYear();
+                    const month = now.getMonth() + 1;
+                    const date = now.getDate();
+                    const hour = now.getHours();
+                    const min = now.getMinutes();
+                const dateNtime = `${year}/${month}/${date} ${hour}:${min}`; // 送信日時を変数定義
+                
+                const msg = { // データベースに格納するオブジェクトを定義
+                    uname: uname,
+                    text : text,
+                    dateNtime : dateNtime,
+                    icon : d
+                    };
+                const newPostRef = push(dbRef); // dbRef上に, データを格納する一意の箱(key,とか)を作成
+                set(newPostRef, msg); // ↑で作った箱(newPostRef)に、具体的な情報(msg)を格納する <= これがデータベースに情報を格納する記述
+                $("#uname").val(""); // #umaneのinput欄を空欄に
+                $("#text").val(""); // #textのinput欄を空欄に
+                $("#text").css('height', '1.5rem');
+                }
+            }
+        });
+
+        // 受信処理, 表示処理
+        onChildAdded(dbRef, function(data){
+            // データベースに格納された情報は一律で(data)という変数として認識される
+            // onChildAdded：dbRefの中の全データ(data)を一つ一つ読む & 
+            //               dbRefを監視しておいて新しいデータ(data)のPostがあったら発火する
+
+            const key = data.key; // dataのkey(ユニークなID文字列)を変数定義
+            const msg = data.val(); // dataの中身(オブジェクト)を変数定義
+            // テンプレートリテラルを使って追加したいhtmlを定義
+            // ${ }の外はすべて文字列として認識される。
+            // `img[${msg.icon}]` => img[0]   エラー
+            // `${img[msg.icon]}` => buke.png 正解
+            let h = `
+                <div class="msg_wrapper">
+                    <div class="msg_header">
+                        <img class="icon_img" src="imgs/${img[msg.icon]}">
+                        <p>${msg.uname}</p>
+                    </div>
+                    <div class="msg_box">
+                        <p class="msg_text">${msg.text}</P>
+                    </div>
+                    <div class="msg_footer">
+                        <p class="date">${msg.dateNtime}</p>
+                        <button class="delete btn hiden_area" id="${key}"><i class="far fa-trash-alt"></i></button>
+                    </div>
+                </div>`
+
+            $("#output").append(h);
+
+            $('#' + key).on('click', function () {
+                remove(ref(db, "chat/" + key));
+                $('#' + key).parent().parent().text("*このメッセージは削除されました");
+            });
+        });
+
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
