@@ -34,3 +34,37 @@ $("#text").on("keydown", function(e){ // #text(textarea)上にキーボード操
         $('#text').css('height', '6rem');
     };
 });
+
+
+// 常に最新メッセージを表示する
+// １．メッセージの数をカウント、変数取得
+// ２．変数に応じて、scrollTopの位置を指定
+// ↓ どうやらメッセージの個数が拾えてない。
+
+// setTimeout(function(){ // パワープレイｗ
+//     let post = $(".msg_wrapper").length;
+//     console.log(post);  // => 1
+//     let child = $("#output").children().length;
+//     console.log(child); // => 1
+// }, 1000);
+
+
+// 今回の学び。「動的要素を取得する」って必ずしもデータベースの情報を受信したあとに発火するとは限らない
+// window.onload = function(){ // なぜかこれだけだと動かない
+//     let child = $("#output").children().length;
+//     console.log(child);
+//     $("#output").animate({scrollTop:child*10000000},100000);
+// };
+
+// $(document).ready(function(){ // なんでどっちも効かない？
+//     let post = $(".msg_wrapper").length;
+//     console.log(post);  // => 1
+//     let child = $("#output").children().length;
+//     console.log(child); // => 1
+//     });
+// $(window).on('load', function(){ // なんでどっちも効かない？
+//     let post2 = $(".msg_wrapper").length;
+//     console.log(post2); // => 1
+//     let child = $("#output").children().length;
+//     console.log(child); // => 1
+//     });
